@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+</head>
+<style>
+.list{width: 100%;max-width: 10rem;margin: 0 auto;overflow: hidden;}
+.row{width: 100%;height:1.07rem;line-height: 1.07rem;border-bottom: 1px solid #ddd;color: #333;position: relative;}
+.del-btn{width: 1.87rem;height: 1.07rem;line-height: 1.07rem;background: #ed1d1d;text-align: center;display: block;text-decoration: none;
+position: absolute;right: -1.87rem;top: 0;color: #fff;}
+.lf-txt{padding-left: .27rem;}
+</style>
+<body>
+	<div class="list">
+		<div class="row"><div class="lf-txt">这是一行测试文字</div><a href="javascript:;" class="del-btn">删除</a></div>
+		<div class="row"><div class="lf-txt">这是一行测试文字</div><a href="javascript:;" class="del-btn">删除</a></div>
+		<div class="row"><div class="lf-txt">这是一行测试文字</div><a href="javascript:;" class="del-btn">删除</a></div>
+	</div>
+	<script src="js/flexible.js"></script>
+	<script>
+	window.addEventListener('load',function(){
+		var list = document.querySelectorAll('.row');
+		var isEnd, 
+		scrollY = 0,
+		changeY = 0,
+		startX = 0, 
+		startY = 0, 
+		moveX = 0,
+		moveY = 0;
+
+		if(list.length>0){
+			for(var i=0; i<list.length; i++){
+				(function(i){
+					//滑动开始
+					list[i].addEventListener('touchstart',function(e){
+						startX = e.targetTouches[0].clientX;
+						startY = e.targetTouches[0].clientY;
+						scrollY = document.documentElement.scrollTop || document.body.scrollTop;
+					});
+
+					//滑动
+					list[i].addEventListener('touchmove',function(e){
+						moveX =  e.targetTouches[0].clientX-startX;
+						moveY =  e.targetTouches[0].clientY-startY;
+						changeY = document.documentElement.scrollTop || document.body.scrollTop-scrollY;
+						if(Math.abs(changeY)<20 && Math.abs(moveX)>Math.abs(moveY) && getAngle(moveX, moveY) === 3){
+							moveX = Math.min(Math.max(- 140, moveX), 100);
+                			e.currentTarget.style.left = moveX + 'rem';
+                			if(moveX<-10) disable_scroll;
+						}else{
+							 e.currentTarget.style.left = '0px'
+						}
+					});
+
+					//滑动结束
+					list[i].addEventListener('touchend',function(e){
+						var left = parseInt(e.currentTarget.style.left);
+			            var new_left;
+			            if (left < -35) {
+			                new_left = -140 + 'px';
+			            } else if (left > 35) {
+			                new_left = 140 + 'px';
+			            } else {
+			                new_left = '0px'
+			            }
+			            e.currentTarget.style.left = new_left
+			            enable_scroll();
+					});
+
+					//点击删除
+					var delBtn = list[i].querySelector('.del-btn');
+					delBtn.addEventListener('touchend',function(e){
+						e.preventDefault();
+						this.parentNode.remove();
+					});
+				})(i)
+			}
+		}
+	})
+
+	function prevent_default(e){
+		e.preventDefault();
+	}
+
+	function disable_scroll() {
+        document.addEventListener('touchmove', prevent_default, true);
+    }
+
+    function enable_scroll() {
+        document.addEventListener('touchmove', prevent_default, false); 
+    }
+
+	//返回角度
+    function GetSlideAngle(dx,dy) {
+        return Math.atan2(dy,dx) * 180 / Math.PI;
+    }
+
+    function getAngle(dx,dy){
+        //根据起点和终点返回方向 1：向上，2：向下，3：向左，4：向右,0：未滑动
+        var result = 0;
+
+        //如果滑动距离太短
+        if (Math.abs(dx) < 2 && Math.abs(dy) < 2) {
+            return result;
+        }
+
+        var angle = GetSlideAngle(dx, dy);
+        if (angle >= -45 && angle < 45) {
+            result = 4;
+        }else if (angle >= 45 && angle < 135) {
+            result = 1;
+        }else if (angle >= -135 && angle < -45) {
+            result = 2;
+        }else if ((angle >= 135 && angle <= 180) || (angle >= -180 && angle < -135)) {
+            result = 3;
+        }
+        return result;
+    }
+	</script>
+</body>
+</html>
